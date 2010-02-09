@@ -70,8 +70,7 @@ class TwitterStream(object):
                     st = json.loads(self.data)
                     if 'user' in st:
                         if st['user']['id'] in ids:
-                            nick = str(st['user']['screen_name'])
-                            self.sender("%s!%s@%s" % (nick, nick, "twig"), codecs.utf_8_encode(st['text'])[0])
+                            self.sender(st['user']['screen_name'], st['text'])
                     self.octets = 0
                     self.data = ""
 
@@ -143,7 +142,7 @@ friends = json.load(urllib.urlopen("http://twitter.com/statuses/friends/%s.json"
 ids = [x['id'] for x in friends]
 
 server = IrcServer()
-stream = TwitterStream(lambda user, msg: server.privmsg(user, "#twig", msg))
+stream = TwitterStream(lambda user, msg: server.privmsg("%s!%s@%s" % (str(user), str(user), "twig"), "#twig", codecs.utf_8_encode(msg)[0]))
 
 while True:
     a = [stream, server] + server.clients
