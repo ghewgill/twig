@@ -6,7 +6,7 @@ import select
 import socket
 import urllib
 
-Config = json.load(open("twirc.config"))
+Config = json.load(open("twig.config"))
 
 class TwitterStream(object):
     def __init__(self, sender):
@@ -67,7 +67,7 @@ class TwitterStream(object):
                     if 'user' in st:
                         if st['user']['id'] in ids:
                             nick = str(st['user']['screen_name'])
-                            self.sender("%s!%s@%s" % (nick, nick, "twirc"), codecs.utf_8_encode(st['text'])[0])
+                            self.sender("%s!%s@%s" % (nick, nick, "twig"), codecs.utf_8_encode(st['text'])[0])
                     self.octets = 0
                     self.data = ""
 
@@ -107,14 +107,14 @@ class IrcClient(object):
             print "bad nick", nick
             sys.exit(1)
         self.nick = nick
-        return ":%s %s %s :twirc" % ("twirc", "001", self.nick)
+        return ":%s %s %s :twig" % ("twig", "001", self.nick)
     def handle_user(self, params):
         self.user, mode, _, realname = params.split(" ", 3)
-        return ":%s JOIN :%s" % (self.ident(), "#twirc")
+        return ":%s JOIN :%s" % (self.ident(), "#twig")
     def handle_ping(self, params):
-        return ":%s PONG :%s" % ("twirc", "twirc")
+        return ":%s PONG :%s" % ("twig", "twig")
     def ident(self):
-        return "%s!%s@%s" % (self.nick, self.user, "twirc")
+        return "%s!%s@%s" % (self.nick, self.user, "twig")
     def privmsg(self, user, channel, msg):
         self.sock.send(":%s PRIVMSG %s %s\r\n" % (user, channel, msg))
 
@@ -135,11 +135,11 @@ class IrcServer(object):
         for x in self.clients:
             x.privmsg(user, channel, msg)
 
-friends = json.load(urllib.urlopen("http://twitter.com/statuses/friends/ghewgill.json"))
+friends = json.load(urllib.urlopen("http://twitter.com/statuses/friends/%s.json" % Config['name']))
 ids = [x['id'] for x in friends]
 
 server = IrcServer()
-stream = TwitterStream(lambda user, msg: server.privmsg(user, "#twirc", msg))
+stream = TwitterStream(lambda user, msg: server.privmsg(user, "#twig", msg))
 
 while True:
     a = [stream, server] + server.clients
