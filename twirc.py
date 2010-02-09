@@ -13,6 +13,9 @@ class TwitterStream(object):
         self.sender = sender
         self.octets = 0
         self.data = ""
+        self.connect()
+    def connect(self):
+        print "Connecting to stream.twitter.com"
         self.sock = socket.socket()
         self.sock.connect(("stream.twitter.com", 80))
         #self.sock.send("GET /1/statuses/sample.json?delimited=length HTTP/1.0\r\n"+
@@ -22,16 +25,29 @@ class TwitterStream(object):
                         ",".join(map(str, ids)),
                         base64.b64encode(Config['name'] + ":" + Config['password']),
                     ))
-        s = ""
+        header = ""
         while True:
-            s += self.sock.recv(1)
-            if s.endswith("\r\n\r\n"):
-                print s
+            s = self.sock.recv(1)
+            if len(s) == 0:
+                self.sock.close()
+                self.sock = None
+                break
+            header += s
+            if header.endswith("\r\n\r\n"):
+                print header
                 break
     def socket(self):
         return self.sock
     def handle(self):
+        if self.sock is None:
+            self.connect()
+            if self.sock is None:
+                return
         data = self.sock.recv(2048)
+        if len(data) == 0:
+            print "Disconnected"
+            self.sock.close()
+            self.sock = None
         i = 0
         while i < len(data):
             if self.octets == 0:
