@@ -1,10 +1,14 @@
 import base64
 import codecs
-import simplejson as json
 import re
 import select
 import socket
 import urllib
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 Config = json.load(open("twig.config"))
 
