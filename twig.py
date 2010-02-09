@@ -122,7 +122,7 @@ class IrcServer(object):
     def __init__(self):
         self.sock = socket.socket()
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind(("127.0.0.1", 6969))
+        self.sock.bind(("127.0.0.1", Config['port']))
         self.sock.listen(5)
         self.clients = []
     def socket(self):
