@@ -13,8 +13,6 @@ class TwitterStream(object):
         self.sender = sender
         self.octets = 0
         self.data = ""
-        friends = json.load(urllib.urlopen("http://twitter.com/statuses/friends/ghewgill.json"))
-        ids = [x['id'] for x in friends]
         self.sock = socket.socket()
         self.sock.connect(("stream.twitter.com", 80))
         #self.sock.send("GET /1/statuses/sample.json?delimited=length HTTP/1.0\r\n"+
@@ -51,8 +49,9 @@ class TwitterStream(object):
                 if len(self.data) == self.octets:
                     st = json.loads(self.data)
                     if 'user' in st:
-                        nick = str(st['user']['screen_name'])
-                        self.sender("%s!%s@%s" % (nick, nick, "twirc"), codecs.utf_8_encode(st['text'])[0])
+                        if st['user']['id'] in ids:
+                            nick = str(st['user']['screen_name'])
+                            self.sender("%s!%s@%s" % (nick, nick, "twirc"), codecs.utf_8_encode(st['text'])[0])
                     self.octets = 0
                     self.data = ""
 
@@ -119,6 +118,9 @@ class IrcServer(object):
     def privmsg(self, user, channel, msg):
         for x in self.clients:
             x.privmsg(user, channel, msg)
+
+friends = json.load(urllib.urlopen("http://twitter.com/statuses/friends/ghewgill.json"))
+ids = [x['id'] for x in friends]
 
 server = IrcServer()
 stream = TwitterStream(lambda user, msg: server.privmsg(user, "#twirc", msg))
