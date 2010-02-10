@@ -30,6 +30,7 @@ server) and will start receiving tweets from the people you follow.
 ## Bugs
 
 - Doesn't echo your own tweets to the channel.
+- More than 100 followed users won't work properly.
 - Twitter stream server disconnections may not be handled gracefully.
 - Client disconnections are probably equally ungraceful.
 - Error handling is terse and often fatal.
