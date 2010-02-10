@@ -28,6 +28,7 @@ import codecs
 import re
 import select
 import socket
+import time
 import urllib
 
 try:
@@ -65,18 +66,26 @@ class TwitterStream(object):
             if header.endswith("\r\n\r\n"):
                 print header
                 break
+        self.lasttime = time.time()
+        self.maxinterval = 30
     def socket(self):
         return self.sock
+    def tick(self):
+        if time.time() - self.lasttime > self.maxinterval * 2:
+            self.sock.close()
+            self.sock = None
+            self.connect()
     def handle(self):
         if self.sock is None:
             self.connect()
-            if self.sock is None:
-                return
+            return
         data = self.sock.recv(2048)
         if len(data) == 0:
             print "Disconnected"
             self.sock.close()
             self.sock = None
+        self.maxinterval = max(self.maxinterval, time.time() - self.lasttime)
+        self.lasttime = time.time()
         i = 0
         while i < len(data):
             if self.octets == 0:
@@ -108,6 +117,8 @@ class IrcClient(object):
         self.user = None
     def socket(self):
         return self.sock
+    def tick(self):
+        pass
     def handle(self):
         data = self.sock.recv(1024)
         for c in data:
@@ -155,6 +166,8 @@ class IrcServer(object):
         self.clients = []
     def socket(self):
         return self.sock
+    def tick(self):
+        pass
     def handle(self):
         t, a = self.sock.accept()
         print "Client connect", a
@@ -171,8 +184,10 @@ stream = TwitterStream(lambda user, msg: server.privmsg("%s!%s@%s" % (str(user),
 
 while True:
     a = [stream, server] + server.clients
-    r, w, e = select.select([x.socket() for x in a], [], [])
+    r, w, e = select.select([x.socket() for x in a], [], [], 1)
     for x in r:
         for s in a:
             if x is s.socket():
                 s.handle()
+    for s in a:
+        s.tick()
