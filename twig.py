@@ -152,6 +152,35 @@ class IrcClient(object):
         return ":%s JOIN :%s" % (self.ident(), "#twig")
     def handle_ping(self, params):
         return ":%s PONG :%s" % ("twig", "twig")
+    def handle_whois(self, params):
+        userinfo = json.load(urllib.urlopen("http://twitter.com/users/show/%s.json" % params))
+        if 'error' in userinfo:
+            return "User %s %s.\r\n" % (params, userinfo['error'])
+        else:
+            print "userinfo: ",userinfo
+            self.sock.send("%s [%s]\r\n" % (userinfo['screen_name'], userinfo['id']))
+            if 'name' in userinfo:
+                self.sock.send(" %-12s : %s\r\n" % ("Real Name",userinfo['name']))
+            if userinfo['verified']:
+                self.sock.send(" %-12s : Verified Account\r\n" % (""))
+            if 'location' in userinfo:
+                self.sock.send(" %-12s : %s\r\n" % ("Location",userinfo['location']))
+            if 'time_zone' in userinfo:
+                self.sock.send(" %-12s : %s\r\n" % ("Time Zone",userinfo['time_zone']))
+            if 'description' in userinfo:
+                self.sock.send(" %-12s : %s\r\n" % ("Description",userinfo['description']))
+            if 'url' in userinfo:
+                self.sock.send(" %-12s : %s\r\n" % ("Home Page",userinfo['url']))
+            if 'followers_count' in userinfo:
+                self.sock.send(" %-12s : %s\r\n" % ("Followers",userinfo['followers_count']))
+            if 'friends_count' in userinfo:
+                self.sock.send(" %-12s : %s\r\n" % ("Following",userinfo['friends_count']))
+            if 'favourites_count' in userinfo:
+                self.sock.send(" %-12s : %s\r\n" % ("Favorites",userinfo['favourites_count']))
+            if 'status' in userinfo:
+                if 'created_at' in userinfo['status']:
+                    self.sock.send(" %-12s : %s\r\n" % ("Idle Since",userinfo['status']['created_at']))
+        return "End of WHOIS"
     def ident(self):
         return "%s!%s@%s" % (self.nick, self.user, "twig")
     def privmsg(self, user, channel, msg):
