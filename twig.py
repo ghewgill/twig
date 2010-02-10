@@ -153,7 +153,7 @@ class IrcClient(object):
     def handle_ping(self, params):
         return ":%s PONG :%s" % ("twig", "twig")
     def handle_whois(self, params):
-        userinfo = json.load(urllib.urlopen("http://twitter.com/users/show/%s.json" % params))
+        userinfo = twit_call("http://twitter.com/users/show/%s.json" % params)
         if 'error' in userinfo:
             return "User %s %s.\r\n" % (params, userinfo['error'])
         else:
@@ -204,7 +204,17 @@ class IrcServer(object):
         for x in self.clients:
             x.privmsg(user, channel, msg)
 
-friends = json.load(urllib.urlopen("http://twitter.com/statuses/friends/%s.json" % Config['name']))
+def twit_call(uri):
+    retries = 0
+    while (retries < 5):
+        # print "Try to load",uri,"try",retries
+        try:
+            return json.load(urllib.urlopen(uri))
+        except:
+            print "load failed"
+        retries = retries + 1
+
+friends = twit_call("http://twitter.com/statuses/friends/%s.json" % Config['name'])
 ids = [x['id'] for x in friends]
 
 server = IrcServer()
