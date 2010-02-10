@@ -213,6 +213,8 @@ def twit_call(uri):
         except:
             print "load failed"
         retries = retries + 1
+    print "Failed to load",uri,"after",retries,"tries"
+    return
 
 friends = twit_call("http://twitter.com/statuses/friends/%s.json" % Config['name'])
 ids = [x['id'] for x in friends]
