@@ -157,7 +157,6 @@ class IrcClient(object):
         if 'error' in userinfo:
             return "User %s %s.\r\n" % (params, userinfo['error'])
         else:
-            print "userinfo: ",userinfo
             self.sock.send("%s [%s]\r\n" % (userinfo['screen_name'], userinfo['id']))
             if 'name' in userinfo:
                 self.sock.send(" %-12s : %s\r\n" % ("Real Name",userinfo['name']))
