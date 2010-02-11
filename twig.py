@@ -208,8 +208,9 @@ class IrcServer(object):
         for x in self.clients:
             x.privmsg(user, channel, msg)
 
+me = load_json("http://twitter.com/users/show/%s.json" % Config['name'])
 friends = load_json("http://twitter.com/statuses/friends/%s.json" % Config['name'])
-ids = [x['id'] for x in friends]
+ids = [me['id']] + [x['id'] for x in friends]
 
 server = IrcServer()
 stream = TwitterStream(lambda user, msg: server.privmsg("%s!%s@%s" % (str(user), str(user), "twig"), "#twig", codecs.utf_8_encode(msg)[0]))
