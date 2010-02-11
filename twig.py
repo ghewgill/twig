@@ -28,6 +28,7 @@ import codecs
 import re
 import select
 import socket
+import sys
 import time
 import urllib
 
@@ -35,6 +36,17 @@ try:
     import json
 except ImportError:
     import simplejson as json
+
+def load_json(uri):
+    tries = 0
+    while tries < 5:
+        try:
+            return json.load(urllib.urlopen(uri))
+        except Exception, x:
+            print "load_json:", x
+        tries += 1
+    print >>sys.stderr, "Fatal: could not load <%s>" % uri
+    sys.exit(1)
 
 Config = json.load(open("twig.config"))
 
@@ -153,7 +165,7 @@ class IrcClient(object):
     def handle_ping(self, params):
         return ":%s PONG :%s" % ("twig", "twig")
     def handle_whois(self, params):
-        userinfo = twit_call("http://twitter.com/users/show/%s.json" % params)
+        userinfo = load_json("http://twitter.com/users/show/%s.json" % params)
         if 'error' in userinfo:
             return "User %s %s.\r\n" % (params, userinfo['error'])
         else:
@@ -204,19 +216,7 @@ class IrcServer(object):
         for x in self.clients:
             x.privmsg(user, channel, msg)
 
-def twit_call(uri):
-    retries = 0
-    while (retries < 5):
-        # print "Try to load",uri,"try",retries
-        try:
-            return json.load(urllib.urlopen(uri))
-        except:
-            print "load failed"
-        retries = retries + 1
-    print "Failed to load",uri,"after",retries,"tries"
-    return
-
-friends = twit_call("http://twitter.com/statuses/friends/%s.json" % Config['name'])
+friends = load_json("http://twitter.com/statuses/friends/%s.json" % Config['name'])
 ids = [x['id'] for x in friends]
 
 server = IrcServer()
