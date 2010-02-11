@@ -170,27 +170,19 @@ class IrcClient(object):
             return "User %s %s.\r\n" % (params, userinfo['error'])
         else:
             self.sock.send("%s [%s]\r\n" % (userinfo['screen_name'], userinfo['id']))
-            if 'name' in userinfo:
-                self.sock.send(" %-12s : %s\r\n" % ("Real Name",userinfo['name']))
-            if userinfo['verified']:
-                self.sock.send(" %-12s : Verified Account\r\n" % (""))
-            if 'location' in userinfo:
-                self.sock.send(" %-12s : %s\r\n" % ("Location",userinfo['location']))
-            if 'time_zone' in userinfo:
-                self.sock.send(" %-12s : %s\r\n" % ("Time Zone",userinfo['time_zone']))
-            if 'description' in userinfo:
-                self.sock.send(" %-12s : %s\r\n" % ("Description",userinfo['description']))
-            if 'url' in userinfo:
-                self.sock.send(" %-12s : %s\r\n" % ("Home Page",userinfo['url']))
-            if 'followers_count' in userinfo:
-                self.sock.send(" %-12s : %s\r\n" % ("Followers",userinfo['followers_count']))
-            if 'friends_count' in userinfo:
-                self.sock.send(" %-12s : %s\r\n" % ("Following",userinfo['friends_count']))
-            if 'favourites_count' in userinfo:
-                self.sock.send(" %-12s : %s\r\n" % ("Favorites",userinfo['favourites_count']))
-            if 'status' in userinfo:
-                if 'created_at' in userinfo['status']:
-                    self.sock.send(" %-12s : %s\r\n" % ("Idle Since",userinfo['status']['created_at']))
+            for key, descr in (("name", "Real Name"),
+                               ("verified", "Verified"),
+                               ("location", "Location"),
+                               ("time_zone", "Time Zone"),
+                               ("description", "Description"),
+                               ("url", "Home Page"),
+                               ("followers_count", "Followers"),
+                               ("friends_count", "Following"),
+                               ("favourites_count", "Favourites")):
+                if key in userinfo:
+                    self.sock.send(" %-12s : %s\r\n" % (descr, userinfo[key]))
+            if 'status' in userinfo and 'created_at' in userinfo['status']:
+                self.sock.send(" %-12s : %s\r\n" % ("Idle Since",userinfo['status']['created_at']))
         return "End of WHOIS"
     def ident(self):
         return "%s!%s@%s" % (self.nick, self.user, "twig")
