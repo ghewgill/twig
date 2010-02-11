@@ -37,6 +37,8 @@ try:
 except ImportError:
     import simplejson as json
 
+DEBUG = False
+
 def load_json(uri):
     tries = 0
     while tries < 5:
@@ -127,16 +129,35 @@ class IrcClient(object):
         self.data = ""
         self.nick = None
         self.user = None
+        self.lastactivity = time.time()
+        self.pingsent = False
     def socket(self):
         return self.sock
     def tick(self):
-        pass
+        silence = time.time() - self.lastactivity
+        if silence > 300:
+            self.sock.close()
+            self.server.remove(self)
+        elif silence > 150 and not self.pingsent:
+            self.sock.send("PING :twig\r\n")
+            self.pingsent = True
     def handle(self):
-        data = self.sock.recv(1024)
+        self.lastactivity = time.time()
+        try:
+            data = self.sock.recv(1024)
+        except socket.error:
+            self.sock.close()
+            self.server.remove(self)
+            return
+        if len(data) == 0:
+            self.sock.close()
+            self.server.remove(self)
+            return
         for c in data:
             if c == "\r":
                 continue
             if c == "\n":
+                if DEBUG: print "<-", self.data
                 if ' ' in self.data:
                     command, params = self.data.split(" ", 1)
                 else:
@@ -146,6 +167,7 @@ class IrcClient(object):
                 if handler is not None:
                     response = handler(params)
                     if response:
+                        if DEBUG: print "->", response
                         self.sock.send(response + "\r\n")
                 else:
                     print "unknown command:", self.data
@@ -163,7 +185,12 @@ class IrcClient(object):
         self.user, mode, _, realname = params.split(" ", 3)
         return ":%s JOIN :%s" % (self.ident(), "#twig")
     def handle_ping(self, params):
-        return ":%s PONG :%s" % ("twig", "twig")
+        return ":%s PONG %s" % ("twig", params)
+    def handle_pong(self, params):
+        self.pingsent = False
+    def handle_quit(self, params):
+        self.sock.close()
+        self.server.remove(self)
     def handle_who(self, params):
         for f in friends:
             self.sock.send(":twig 352 %s #twig %s twig twig %s H :1 %s\r\n" % (self.nick, f['screen_name'], f['screen_name'], f['name']))
@@ -211,6 +238,8 @@ class IrcServer(object):
     def privmsg(self, user, channel, msg):
         for x in self.clients:
             x.privmsg(user, channel, msg)
+    def remove(self, client):
+        self.clients.remove(client)
 
 me = load_json("http://twitter.com/users/show/%s.json" % Config['name'])
 friends = load_json("http://twitter.com/statuses/friends/%s.json" % Config['name'])
