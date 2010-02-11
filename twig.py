@@ -164,6 +164,10 @@ class IrcClient(object):
         return ":%s JOIN :%s" % (self.ident(), "#twig")
     def handle_ping(self, params):
         return ":%s PONG :%s" % ("twig", "twig")
+    def handle_who(self, params):
+        for f in friends:
+            self.sock.send(":twig 352 %s #twig %s twig twig %s H :1 %s\r\n" % (self.nick, f['screen_name'], f['screen_name'], f['name']))
+        self.sock.send(":twig 315 %s :End of /WHO list" % self.nick)
     def handle_whois(self, params):
         userinfo = load_json("http://twitter.com/users/show/%s.json" % params)
         if 'error' in userinfo:
