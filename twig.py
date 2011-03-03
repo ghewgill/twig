@@ -242,12 +242,18 @@ class IrcServer(object):
     def remove(self, client):
         self.clients.remove(client)
 
+def sender(server, user, msg):
+    if not msg.startswith("@") or msg.startswith("@"+Config['name']+" "):
+        server.privmsg("%s!%s@%s" % (str(user), str(user), "twig"), "#twig", codecs.utf_8_encode(msg)[0])
+    else:
+        print "dropped: %s <%s> %s" % (time.strftime("%H:%M"), str(user), repr(msg))
+
 me = load_json("http://twitter.com/users/show/%s.json" % Config['name'])
 friends = load_json("http://twitter.com/statuses/friends/%s.json" % Config['name'])
 ids = [me['id']] + [x['id'] for x in friends]
 
 server = IrcServer()
-stream = TwitterStream(lambda user, msg: server.privmsg("%s!%s@%s" % (str(user), str(user), "twig"), "#twig", codecs.utf_8_encode(msg)[0]))
+stream = TwitterStream(lambda user, msg: sender(server, user, msg))
 
 while True:
     a = [stream, server] + server.clients
