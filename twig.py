@@ -98,6 +98,7 @@ class TwitterStream(object):
             print "Disconnected"
             self.sock.close()
             self.sock = None
+            self.connect()
         self.maxinterval = max(self.maxinterval, time.time() - self.lasttime)
         self.lasttime = time.time()
         i = 0
