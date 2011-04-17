@@ -61,7 +61,13 @@ class TwitterStream(object):
     def connect(self):
         print "Connecting to stream.twitter.com"
         self.sock = socket.socket()
-        self.sock.connect(("stream.twitter.com", 80))
+        while True:
+            try:
+                self.sock.connect(("stream.twitter.com", 80))
+                break
+            except Exception, e:
+                print e
+                time.sleep(5)
         #self.sock.send("GET /1/statuses/sample.json?delimited=length HTTP/1.0\r\n"+
         self.sock.send(("GET /1/statuses/filter.json?delimited=length&follow=%s HTTP/1.0\r\n"+
                         "Host: stream.twitter.com\r\n"+
