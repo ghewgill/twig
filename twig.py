@@ -203,7 +203,7 @@ class IrcClient(object):
             self.sock.send(":twig 352 %s #twig %s twig twig %s H :1 %s\r\n" % (self.nick, f['screen_name'], f['screen_name'], f['name']))
         self.sock.send(":twig 315 %s :End of /WHO list" % self.nick)
     def handle_whois(self, params):
-        userinfo = load_json("http://twitter.com/users/show/%s.json" % params)
+        userinfo = load_json("https://twitter.com/users/show/%s.json" % params)
         if 'error' in userinfo:
             return "User %s %s.\r\n" % (params, userinfo['error'])
         else:
@@ -257,8 +257,8 @@ def sender(server, user, msg):
     else:
         print "dropped: %s <%s> %s" % (time.strftime("%H:%M"), str(user), repr(msg))
 
-me = load_json("http://twitter.com/users/show/%s.json" % Config['name'])
-friends = load_json("http://twitter.com/statuses/friends/%s.json" % Config['name'])
+me = load_json("https://twitter.com/users/show/%s.json" % Config['name'])
+friends = load_json("https://twitter.com/statuses/friends/%s.json" % Config['name'])
 ids = [me['id']] + [x['id'] for x in friends]
 
 server = IrcServer()
