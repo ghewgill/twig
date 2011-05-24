@@ -253,7 +253,7 @@ def sender(server, user, msg):
     key = user + msg
     if key not in seen and (not msg.startswith("@") or msg.startswith("@"+Config['name']+" ")):
         seen.add(key)
-        server.privmsg("%s!%s@%s" % (str(user), str(user), "twig"), "#twig", codecs.utf_8_encode(msg)[0])
+        server.privmsg("%s!%s@%s" % (str(user), str(user), "twig"), "#twig", codecs.utf_8_encode(msg.translate(dict((chr(x), " ") for x in range(32))))[0])
     else:
         print "dropped: %s <%s> %s" % (time.strftime("%H:%M"), str(user), repr(msg))
 
