@@ -3,6 +3,10 @@
 Twig is an IRC server that reads from the Twitter Streaming API and forwards
 new tweets to an IRC channel. It is designed to be used by a single user only.
 
+## NOTE
+
+> As noted under **Bugs** below, this doesn't work with more than 100 followed users. Since I recently passed that on my own Twitter account, I've switched to [Bitlbee](http://bitlbee.org) and no longer use twig.
+
 ## Requirements
 
 Twig is written in Python and has no external dependencies other than a JSON
